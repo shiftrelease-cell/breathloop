@@ -48,6 +48,21 @@ const PATTERNS = {
   },
 };
 
+const EDU = {
+  box: {
+    title: "Why Box Breathing Works",
+    body: "Box breathing is used by first responders, pilots, and Navy SEALs to stay steady and focused under pressure. Four counts in, four counts hold, four counts out, four counts hold. Steady counting gives your mind something simple to hold onto when everything else feels like too much.",
+  },
+  calm: {
+    title: "Why 4 7 8 Works",
+    body: "The 4 7 8 pattern uses a longer exhale than inhale. A longer exhale helps signal to your body that it is safe to slow down. Many people use this one before a hard conversation, or before walking back onto the floor after a heavy moment.",
+  },
+  sigh: {
+    title: "Why The Double Sigh Works",
+    body: "The Double Sigh, also known as the physiological sigh, comes from real breathing research out of Stanford. Two quick inhales followed by one long exhale is one of the fastest ways your body naturally knows how to calm down in the moment.",
+  },
+};
+
 const MSGS = [
   "You gave yourself a reset. Your body thanks you.",
   "Two sessions. You are building a healthy habit.",
@@ -65,10 +80,21 @@ export default function App() {
   const [rep, setRep] = useState(0);
   const [sess, setSess] = useState(0);
   const [done, setDone] = useState(false);
+  const [doneIdx, setDoneIdx] = useState(0);
+  const [note, setNote] = useState("");
+  const [saved, setSaved] = useState(false);
+  const touchX = useRef(null);
   const [ripples, setRipples] = useState([]);
   const runRef = useRef(false);
   const tmrRef = useRef(null);
   const ridRef = useRef(0);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("breathloop_sessions_today");
+      if (saved) setSess(Number(saved) || 0);
+    } catch (e) {}
+  }, []);
 
   const ripple = useCallback(() => {
     const id = ridRef.current++;
@@ -89,7 +115,13 @@ export default function App() {
     clearAll();
     setLabel("Ready");
     if (ok) {
-      setSess((s) => Math.min(s + 1, 5));
+      setSess((s) => {
+        const next = Math.min(s + 1, 5);
+        try {
+          localStorage.setItem("breathloop_sessions_today", String(next));
+        } catch (e) {}
+        return next;
+      });
       setDone(true);
     }
   }, []);
@@ -151,8 +183,30 @@ export default function App() {
   };
   const again = () => {
     setDone(false);
+    setDoneIdx(0);
+    setNote("");
+    setSaved(false);
     clearAll();
     setLabel("Ready");
+  };
+  const onTouchStart = (e) => {
+    touchX.current = e.touches[0].clientX;
+  };
+  const onTouchEnd = (e) => {
+    if (touchX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchX.current;
+    if (dx < -40) setDoneIdx((d) => Math.min(d + 1, 2));
+    if (dx > 40) setDoneIdx((d) => Math.max(d - 1, 0));
+    touchX.current = null;
+  };
+  const saveNote = () => {
+    try {
+      const key = "breathloop_notes";
+      const existing = JSON.parse(localStorage.getItem(key) || "[]");
+      existing.push({ pattern: pat, text: note, date: new Date().toISOString() });
+      localStorage.setItem(key, JSON.stringify(existing));
+    } catch (e) {}
+    setSaved(true);
   };
   const p = PATTERNS[pat];
   const showReps = running && p.reps > 1;
@@ -224,10 +278,44 @@ export default function App() {
               <div style={{ textAlign: "center", fontSize: 12, color: C.ts, fontFamily: "sans-serif", lineHeight: 1.6, padding: "0 .5rem" }}>{p.tip}</div>
             </>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: ".75rem", padding: ".75rem 0 .25rem" }}>
-              <div style={{ width: 70, height: 70, borderRadius: "50%", background: C.circleFill, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28 }}>🌿</div>
-              <div style={{ fontSize: 24, color: C.tx, fontWeight: 400 }}>{sess >= 5 ? "Five sessions." : "Well done."}</div>
-              <div style={{ fontSize: 13, color: C.ts, fontFamily: "sans-serif", lineHeight: 1.65, maxWidth: 260 }}>{MSGS[Math.min(sess - 1, MSGS.length - 1)]}</div>
+            <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: ".75rem", padding: ".5rem 0 .25rem", minHeight: 260 }}>
+              {doneIdx === 0 && (
+                <>
+                  <div style={{ width: 70, height: 70, borderRadius: "50%", background: C.circleFill, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28 }}>🌿</div>
+                  <div style={{ fontSize: 24, color: C.tx, fontWeight: 400 }}>{sess >= 5 ? "Five sessions." : "Well done."}</div>
+                  <div style={{ fontSize: 13, color: C.ts, fontFamily: "sans-serif", lineHeight: 1.65, maxWidth: 260 }}>{MSGS[Math.min(sess - 1, MSGS.length - 1)]}</div>
+                  <div style={{ fontSize: 11, color: C.tf, fontFamily: "sans-serif", marginTop: 4 }}>Swipe to learn why this works</div>
+                </>
+              )}
+              {doneIdx === 1 && (
+                <>
+                  <div style={{ width: 70, height: 70, borderRadius: "50%", background: C.circleFill, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>📘</div>
+                  <div style={{ fontSize: 18, color: C.tx, fontWeight: 600, fontFamily: "sans-serif" }}>{EDU[pat].title}</div>
+                  <div style={{ fontSize: 13, color: C.ts, fontFamily: "sans-serif", lineHeight: 1.7, maxWidth: 270 }}>{EDU[pat].body}</div>
+                </>
+              )}
+              {doneIdx === 2 && (
+                <>
+                  <div style={{ width: 70, height: 70, borderRadius: "50%", background: C.circleFill, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>✏️</div>
+                  <div style={{ fontSize: 18, color: C.tx, fontWeight: 600, fontFamily: "sans-serif" }}>How are you feeling</div>
+                  <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="A quick note about this shift, just for you." style={{ width: "100%", maxWidth: 270, minHeight: 70, borderRadius: 12, border: `1.5px solid ${C.chipBorder}`, padding: 10, fontFamily: "sans-serif", fontSize: 13, color: C.tx, resize: "none", outline: "none" }} />
+                  <button onClick={saveNote} style={{ padding: "8px 24px", fontSize: 13, fontWeight: 600, fontFamily: "sans-serif", background: saved ? C.chipBorder : C.btn, color: saved ? C.ts : "#fff", border: "none", borderRadius: 999, cursor: "pointer" }}>
+                    {saved ? "Saved" : "Save note"}
+                  </button>
+                </>
+              )}
+
+              <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
+                {[0, 1, 2].map((i) => (
+                  <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: i === doneIdx ? C.btn : C.chipBorder }} />
+                ))}
+              </div>
+
+              <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
+                {doneIdx > 0 && <button onClick={() => setDoneIdx((d) => d - 1)} style={{ background: "transparent", border: "none", color: C.ts, fontSize: 13, fontFamily: "sans-serif", cursor: "pointer" }}>Back</button>}
+                {doneIdx < 2 && <button onClick={() => setDoneIdx((d) => d + 1)} style={{ background: "transparent", border: "none", color: C.btn, fontSize: 13, fontFamily: "sans-serif", fontWeight: 600, cursor: "pointer" }}>Next</button>}
+              </div>
+
               <button onClick={again} style={{ marginTop: ".5rem", padding: "11px 32px", fontSize: 14, fontWeight: 500, fontFamily: "sans-serif", background: C.btn, color: "#fff", border: "none", borderRadius: 999, cursor: "pointer" }}>
                 Breathe again
               </button>
