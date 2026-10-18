@@ -71,7 +71,54 @@ const MSGS = [
   "Five. Your nervous system is grateful.",
 ];
 
+// Communication tips. One new tip per week. To add a tip, add one more object to the end of this list.
+// The tip for the current week shows automatically, starting on TIPS_START.
+const TIPS_START = new Date("2026-10-19T00:00:00");
+const TIPS_PAGE = "https://shiftrelease.com/pages/tips-on-better-communication";
+
+const TIPS = [
+  {
+    week: "Week 1",
+    title: "The First Minute",
+    scene: "Walking into a new patient's room after report",
+    body: "Patients decide how they feel about you before you say a word. Before you open the door, take one slow breath. Then walk in, slow down, and look at their face before you look at the screen.",
+    say: "Hi, I'm [your name], your nurse today. I'm here with you all shift.",
+    shift: "On nights, a patient can be tired, scared, and in pain all at once. A calm face and a clear name can settle the whole room. We have all walked in at 3am running on fumes. This small pause is for us too.",
+    ask: "I would love for you to try this and let me know how it went. Which part is hardest for you?",
+  },
+];
+
+function currentTip() {
+  const weeks = Math.floor((Date.now() - TIPS_START.getTime()) / (7 * 24 * 60 * 60 * 1000));
+  return TIPS[Math.max(0, Math.min(weeks, TIPS.length - 1))];
+}
+
+function TipView({ C }) {
+  const t = currentTip();
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: ".75rem", padding: ".25rem 0" }}>
+      <div style={{ fontSize: 10, letterSpacing: ".14em", textTransform: "uppercase", color: C.tf, fontWeight: 600, fontFamily: "sans-serif" }}>
+        Communication Tip · {t.week}
+      </div>
+      <div style={{ fontSize: 24, color: C.tx, fontWeight: 400 }}>{t.title}</div>
+      <div style={{ fontSize: 12, color: C.ts, fontFamily: "sans-serif", fontStyle: "italic" }}>{t.scene}</div>
+      <div style={{ fontSize: 13, color: C.ts, fontFamily: "sans-serif", lineHeight: 1.7, maxWidth: 290 }}>{t.body}</div>
+      <div style={{ background: C.circleFill, borderRadius: 14, padding: "12px 14px", maxWidth: 290 }}>
+        <div style={{ fontSize: 10, letterSpacing: ".12em", textTransform: "uppercase", color: C.btn, fontWeight: 600, fontFamily: "sans-serif", marginBottom: 4 }}>Try saying</div>
+        <div style={{ fontSize: 14, color: C.tx, lineHeight: 1.5 }}>{t.say}</div>
+      </div>
+      <div style={{ fontSize: 13, color: C.ts, fontFamily: "sans-serif", lineHeight: 1.7, maxWidth: 290 }}>{t.shift}</div>
+      <div style={{ fontSize: 12, color: C.tf, fontFamily: "sans-serif", lineHeight: 1.6, maxWidth: 290 }}>{t.ask}</div>
+      <a href={TIPS_PAGE} target="_blank" rel="noopener noreferrer" style={{ marginTop: ".25rem", padding: "11px 28px", fontSize: 14, fontWeight: 500, fontFamily: "sans-serif", background: C.btn, color: "#fff", borderRadius: 999, textDecoration: "none" }}>
+        Learn more on shiftrelease.com
+      </a>
+      <div style={{ fontSize: 11, color: C.tf, fontFamily: "sans-serif" }}>A new tip arrives every week.</div>
+    </div>
+  );
+}
+
 export default function App() {
+  const [view, setView] = useState("breathe");
   const [pat, setPat] = useState("sigh");
   const [running, setRunning] = useState(false);
   const [label, setLabel] = useState("Ready");
@@ -195,7 +242,7 @@ export default function App() {
   const onTouchEnd = (e) => {
     if (touchX.current === null) return;
     const dx = e.changedTouches[0].clientX - touchX.current;
-    if (dx < -40) setDoneIdx((d) => Math.min(d + 1, 2));
+    if (dx < -40) setDoneIdx((d) => Math.min(d + 1, 3));
     if (dx > 40) setDoneIdx((d) => Math.max(d - 1, 0));
     touchX.current = null;
   };
@@ -251,8 +298,18 @@ export default function App() {
           </div>
         </div>
 
+        <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: "1rem" }}>
+          {[["breathe", "Breathe"], ["tips", "Communication Tips"]].map(([k, text]) => (
+            <button key={k} onClick={() => !running && setView(k)} style={{ padding: "7px 16px", fontSize: 12, fontWeight: 600, fontFamily: "sans-serif", borderRadius: 999, border: view === k ? "none" : `1.5px solid ${C.chipBorder}`, background: view === k ? C.btn : "transparent", color: view === k ? "#fff" : C.ts, cursor: running ? "not-allowed" : "pointer", opacity: running && view !== k ? 0.5 : 1, transition: "all .2s" }}>
+              {text}
+            </button>
+          ))}
+        </div>
+
         <div style={{ background: C.card, borderRadius: 24, boxShadow: "0 4px 32px rgba(37,50,31,.08)", padding: "1.75rem 1.5rem 1.5rem" }}>
-          {!done ? (
+          {view === "tips" ? (
+            <TipView C={C} />
+          ) : !done ? (
             <>
               <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: "1.5rem", flexWrap: "wrap" }}>
                 {Object.entries(PATTERNS).map(([k, v]) => (
@@ -296,6 +353,17 @@ export default function App() {
               )}
               {doneIdx === 2 && (
                 <>
+                  <div style={{ width: 70, height: 70, borderRadius: "50%", background: C.circleFill, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>💬</div>
+                  <div style={{ fontSize: 10, letterSpacing: ".14em", textTransform: "uppercase", color: C.tf, fontWeight: 600, fontFamily: "sans-serif" }}>Tip of the week</div>
+                  <div style={{ fontSize: 18, color: C.tx, fontWeight: 600, fontFamily: "sans-serif" }}>{currentTip().title}</div>
+                  <div style={{ fontSize: 13, color: C.ts, fontFamily: "sans-serif", lineHeight: 1.7, maxWidth: 270 }}>{currentTip().scene}. Breath first, then words.</div>
+                  <a href={TIPS_PAGE} target="_blank" rel="noopener noreferrer" style={{ padding: "8px 22px", fontSize: 13, fontWeight: 600, fontFamily: "sans-serif", color: C.btn, border: `1.5px solid ${C.chipBorder}`, borderRadius: 999, textDecoration: "none" }}>
+                    Learn more
+                  </a>
+                </>
+              )}
+              {doneIdx === 3 && (
+                <>
                   <div style={{ width: 70, height: 70, borderRadius: "50%", background: C.circleFill, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>✏️</div>
                   <div style={{ fontSize: 18, color: C.tx, fontWeight: 600, fontFamily: "sans-serif" }}>How are you feeling</div>
                   <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="A quick note about this shift, just for you." style={{ width: "100%", maxWidth: 270, minHeight: 70, borderRadius: 12, border: `1.5px solid ${C.chipBorder}`, padding: 10, fontFamily: "sans-serif", fontSize: 13, color: C.tx, resize: "none", outline: "none" }} />
@@ -306,14 +374,14 @@ export default function App() {
               )}
 
               <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
-                {[0, 1, 2].map((i) => (
+                {[0, 1, 2, 3].map((i) => (
                   <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: i === doneIdx ? C.btn : C.chipBorder }} />
                 ))}
               </div>
 
               <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
                 {doneIdx > 0 && <button onClick={() => setDoneIdx((d) => d - 1)} style={{ background: "transparent", border: "none", color: C.ts, fontSize: 13, fontFamily: "sans-serif", cursor: "pointer" }}>Back</button>}
-                {doneIdx < 2 && <button onClick={() => setDoneIdx((d) => d + 1)} style={{ background: "transparent", border: "none", color: C.btn, fontSize: 13, fontFamily: "sans-serif", fontWeight: 600, cursor: "pointer" }}>Next</button>}
+                {doneIdx < 3 && <button onClick={() => setDoneIdx((d) => d + 1)} style={{ background: "transparent", border: "none", color: C.btn, fontSize: 13, fontFamily: "sans-serif", fontWeight: 600, cursor: "pointer" }}>Next</button>}
               </div>
 
               <button onClick={again} style={{ marginTop: ".5rem", padding: "11px 32px", fontSize: 14, fontWeight: 500, fontFamily: "sans-serif", background: C.btn, color: "#fff", border: "none", borderRadius: 999, cursor: "pointer" }}>
