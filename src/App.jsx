@@ -71,14 +71,14 @@ const MSGS = [
   "Five. Your nervous system is grateful.",
 ];
 
-// Communication tips. One new tip per week. To add a tip, add one more object to the end of this list.
+// Communication tips. To add a tip, add one more object to the end of this list (with the next number).
 // The tip for the current week shows automatically, starting on TIPS_START.
 const TIPS_START = new Date("2026-10-19T00:00:00");
 const TIPS_PAGE = "https://shiftrelease.com/pages/tips-on-better-communication";
 
 const TIPS = [
   {
-    week: "Week 1",
+    number: 1,
     title: "The First Minute",
     scene: "Walking into a new patient's room after report",
     body: "Patients decide how they feel about you before you say a word. Before you open the door, take one slow breath. Then walk in, slow down, and look at their face before you look at the screen.",
@@ -98,7 +98,7 @@ function TipView({ C }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: ".75rem", padding: ".25rem 0" }}>
       <div style={{ fontSize: 10, letterSpacing: ".14em", textTransform: "uppercase", color: C.tf, fontWeight: 600, fontFamily: "sans-serif" }}>
-        Communication Tip · {t.week}
+        Communication Tip Number {t.number}
       </div>
       <div style={{ fontSize: 24, color: C.tx, fontWeight: 400 }}>{t.title}</div>
       <div style={{ fontSize: 12, color: C.ts, fontFamily: "sans-serif", fontStyle: "italic" }}>{t.scene}</div>
@@ -112,7 +112,6 @@ function TipView({ C }) {
       <a href={TIPS_PAGE} target="_blank" rel="noopener noreferrer" style={{ marginTop: ".25rem", padding: "11px 28px", fontSize: 14, fontWeight: 500, fontFamily: "sans-serif", background: C.btn, color: "#fff", borderRadius: 999, textDecoration: "none" }}>
         Learn more on shiftrelease.com
       </a>
-      <div style={{ fontSize: 11, color: C.tf, fontFamily: "sans-serif" }}>A new tip arrives every week.</div>
     </div>
   );
 }
