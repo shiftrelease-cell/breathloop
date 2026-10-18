@@ -74,7 +74,7 @@ const MSGS = [
 // Communication tips. To add a tip, add one more object to the end of this list (with the next number).
 // The tip for the current week shows automatically, starting on TIPS_START.
 const TIPS_START = new Date("2026-10-19T00:00:00");
-const TIPS_PAGE = "https://shiftrelease.com/pages/tips-on-better-communication";
+const TIPS_PAGE = "https://shiftrelease.myshopify.com/pages/tips-on-better-communication";
 
 const TIPS = [
   {
@@ -110,7 +110,7 @@ function TipView({ C }) {
       <div style={{ fontSize: 13, color: C.ts, fontFamily: "sans-serif", lineHeight: 1.7, maxWidth: 290 }}>{t.shift}</div>
       <div style={{ fontSize: 12, color: C.tf, fontFamily: "sans-serif", lineHeight: 1.6, maxWidth: 290 }}>{t.ask}</div>
       <a href={TIPS_PAGE} target="_blank" rel="noopener noreferrer" style={{ marginTop: ".25rem", padding: "11px 28px", fontSize: 14, fontWeight: 500, fontFamily: "sans-serif", background: C.btn, color: "#fff", borderRadius: 999, textDecoration: "none" }}>
-        Learn more on shiftrelease.com
+        Learn more on the ShiftRelease site
       </a>
     </div>
   );
